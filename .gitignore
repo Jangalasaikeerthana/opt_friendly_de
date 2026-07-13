@@ -1,2 +1,6 @@
 venv/
 *.deb
+.env
+h1b-key.pem
+*.Zone.Identifier
+Employer Information (1).csv
