@@ -25,18 +25,20 @@ def check_slug(slug):
 
 if __name__ == "__main__":
     print("Loading USCIS data...")
-    df = pd.read_csv('Employer Information (1).csv', encoding='utf-16', sep='\t', low_memory=False)
-    
+    df = pd.read_csv('Employer Information (1).csv', encoding='utf-16', sep='\t', low_memory=False,usecols=['Employer (Petitioner) Name'])
+    print("CSV loaded!")
     unique_companies = df['Employer (Petitioner) Name'].dropna().unique()
-
+    print(f"Unique companies: {len(unique_companies)}") 
 
     cleaned_slugs = list(set([cleaning_name(name) for name in unique_companies]))
-    testing= cleaned_slugs[:1000]
+    
+
+#    testing= cleaned_slugs[:25000]
     print(f"Total unique slugs: {len(cleaned_slugs)}")
     
     start = time.time()
     with ThreadPoolExecutor(max_workers=10) as executor:
-        results = list(executor.map(check_slug, testing))
+        results = list(executor.map(check_slug,cleaned_slugs)) #testing))
     
     confirmed = [r for r in results if r is not None]
     
