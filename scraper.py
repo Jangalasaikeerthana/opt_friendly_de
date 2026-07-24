@@ -1,4 +1,3 @@
-
 import requests
 import pandas as pd
 import psycopg2
@@ -63,6 +62,7 @@ if __name__ == "__main__":
         results = list(executor.map(fetch_and_save, confirmed))
 
     print(f"Done! Total jobs saved: {sum(results)}")
+
     conn = psycopg2.connect(
         host=os.getenv("DB_HOST"),
         database=os.getenv("DB_NAME"),
@@ -70,6 +70,26 @@ if __name__ == "__main__":
         password=os.getenv("DB_PASSWORD"),
         port=os.getenv("DB_PORT")
     )
+    cursor = conn.cursor()
+
+    # soft delete - mark inactive
+    cursor.execute("""
+        UPDATE jobs SET is_active = FALSE 
+        WHERE last_seen < NOW() - INTERVAL '3 days'
+    """)
+
+    # hard delete - remove after 30 days inactive
+    cursor.execute("""
+        DELETE FROM jobs 
+        WHERE is_active = FALSE 
+        AND last_seen < NOW() - INTERVAL '30 days'
+    """)
+
+    conn.commit()
+    cursor.close()
+    print("Cleanup done.")
+
+    # export CSV
     df = pd.read_sql("SELECT * FROM jobs WHERE is_active = TRUE", conn)
     df.to_csv('jobs.csv', index=False)
     conn.close()
