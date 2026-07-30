@@ -6,3 +6,4 @@ h1b-key.pem
 Employer Information (1).csv
 *.Zone.Identifier
 *.pem
+output.log
